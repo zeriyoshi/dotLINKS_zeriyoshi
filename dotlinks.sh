@@ -1,6 +1,6 @@
 #!/bin/sh
 
-__VERSION='0.0.1'
+__VERSION='0.0.2'
 __UPSTREAM_URI='https://github.com/zeriyoshi/dotLINKS'
 
 # POSIX friendly path detection.
@@ -56,7 +56,7 @@ export_link () ## Link symbolic links.
 
         if [ ! -d "$FILE_DIR" ]; then
             mkdir -p "$FILE_DIR"
-            __print_purple "📁 [CREATED]"
+            __print_purple "[CREATED]"
             printf " $FILE_DIR \n"
         fi
 
@@ -114,7 +114,7 @@ export_unlink () ## Unlink symbolic links.
                 if [ "$CHOICE" != 'y' ]; then
                     rm "$HOME$FILE"
                     __print_red "[DELETED]"
-                    printf "   $HOME$FILE\n"
+                    printf "  $HOME$FILE\n"
                 else
                     __print_yellow "[SKIPPED]"
                     printf " $HOME$FILE\n"
@@ -128,10 +128,18 @@ export_unlink () ## Unlink symbolic links.
             if [ $UNLINK_DIR_ITEM_COUNT -eq 0 ]; then
                 rmdir "$UNLINK_DIR"
                 __print_purple "[DELETED]"
-                printf "   $UNLINK_DIR\n"
+                printf "  $UNLINK_DIR\n"
             fi
         fi
     done
+}
+
+export_version () ## Show version.
+{
+    __print_cyan "dotLINKS"
+    printf " version "
+    __print_yellow "$__VERSION"
+    printf " ($__UPSTREAM_URI)\n"
 }
 
 # Self documentation.
@@ -142,19 +150,12 @@ export_usage () ## Show usage.
     
     printf "\n"
 
-    printf "\033[33mUsage:\033[m\n"
+    __print_yellow "Usage:\n"
     printf " $__SCRIPT_PATH [command]\n\n"
 
-    printf "\033[33mCommands:\033[m\n"
-    grep -E '^(function\s+)?\w+ \(\)\s+\{?\s*##' $__SCRIPT_PATH | sed -e 's/{//;s/ \{1,\}/ /g;s/function //;s/() ## /<>/' | cut -c8- | awk -F '<>' '{printf " \033[35m%-20s\033[0m %s\n", $1, $2}'
-}
+    __print_yellow "Commands:\n"
 
-export_version () ## Show version.
-{
-    __print_cyan "dotLINKS"
-    printf " version "
-    __print_yellow "$__VERSION"
-    printf " ($__UPSTREAM_URI)\n"
+    grep -E '^(function\s+)?\w+ \(\)\s+\{?\s*##' $__SCRIPT_PATH | sed -e 's/{//;s/ \{1,\}/ /g;s/function //;s/() ## /<>/' | cut -c8- | awk -F '<>' '{printf " \033[35m%-20s\033[0m %s\n", $1, $2}'
 }
 
 __line_back ()
@@ -194,7 +195,7 @@ elif [ "$1" = '' ]; then
     exit 1
 else
     __print_red "[ERROR] Invalid command"
-    printf " ${1}\n"
+    printf " $1\n"
     export_usage
     exit 1
 fi
