@@ -3,3 +3,7 @@ if [ -d "/usr/local/etc/bash_completion.d" ]; then
         . "$COMPLETION_FILE"
     done
 fi
+
+if [ -r "/usr/share/git-core/contrib/completion/git-prompt.sh" ]; then
+    . /usr/share/git-core/contrib/completion/git-prompt.sh
+fi
