@@ -1,6 +1,6 @@
 #!/bin/sh
 
-__VERSION='0.0.3'
+__VERSION='0.0.4'
 __UPSTREAM_URI_HTTP='https://github.com/zeriyoshi/dotLINKS'
 __UPSTREAM_URI_SSH='git@github.com:zeriyoshi/dotLINKS.git'
 
@@ -19,6 +19,63 @@ case "$0" in
 esac
 __SCRIPT_DIR="${__SCRIPT_PATH%/*}"
 
+__check_git()
+{
+    print_yellow "  Checking git installed status..."
+    if ! type git > /dev/null 2>&1; then
+        print_red "FAILED\n\nUpgrade process depends for git,\nPlease install and retry.\n\nAborted.\n"
+        exit 1
+    fi
+    print_cyan "OK\n"
+}
+
+__check_git_upstream()
+{
+    print_yellow "  Checking remote upstream repository..."
+    REMOTE_UPSTREAM_URI="$(cd "$__SCRIPT_DIR"; git remote get-url upstream 2>/dev/null &&:)"
+    if [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_SSH" ] && [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_HTTP" ]; then
+        print_yellow "INVALID\n"
+        print_yellow "    Setting remote upstream repository..."
+        $(cd "$__SCRIPT_DIR"; git remote add upstream "$__UPSTREAM_URI_SSH")
+        REMOTE_UPSTREAM_URI="$(cd "$__SCRIPT_DIR"; git remote get-url upstream 2>/dev/null &&:)"
+        if [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_SSH" ] && [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_HTTP" ]; then
+            print_red "FAILED\n\nCannot add remote upstream repository.\nCheck upstream setting manually.\n\nAborted.\n"
+            exit 1
+        else
+            print_cyan "OK\n"
+        fi
+    else
+        print_cyan "OK\n"
+    fi
+}
+
+export_init () ## Initialize dotLINKS.
+{
+    __check_git
+
+    print_yellow "  Your dotLINKS remote repository :"
+    read REMOTE_ORIGIN
+    line_back
+    if [ "$REMOTE_ORIGIN" = '' ]; then
+        print_red "Initialize required remote repository.\n\nAborted.\n"
+        exit 1
+    fi
+
+    print_yellow "  Setting remote origin repository..."
+    $(cd "$__SCRIPT_DIR"; git remote set-url origin "$REMOTE_ORIGIN")
+    REMOTE_ORIGIN_URI="$(cd "$__SCRIPT_DIR"; git remote get-url origin 2>/dev/null &&:)"
+    if [ "$REMOTE_ORIGIN_URI" = "$REMOTE_ORIGIN" ]; then
+        print_cyan "OK\n"
+    else
+        print_red "FAILED\n\nCannot add remote origin repository.\n\nAborted.\n"
+        exit 1
+    fi
+
+    __check_git_upstream
+
+    print_cyan "\nInitialize successfully.\n"
+}
+
 export_link () ## Link symbolic links.
 {
     print_purple "Create symbolic link.\n"
@@ -28,7 +85,7 @@ export_link () ## Link symbolic links.
     line_back
     if [ "$CHOICE" != 'n' ]; then
         print_cyan "\n  Removing unused files..."
-        find $__SCRIPT_DIR/home \( -name '.DS_Store' -or -name '._*' -or -name 'Thumbs.db' -or -name 'Desktop.ini' \) -delete
+        find "$__SCRIPT_DIR/home" \( -name '.DS_Store' -or -name '._*' -or -name 'Thumbs.db' -or -name 'Desktop.ini' \) -delete
         printf " done\n"
     fi
 
@@ -53,7 +110,7 @@ export_link () ## Link symbolic links.
     printf "\n"
 
     for FILE in $FILES; do
-        FILE_DIR=$(dirname "$HOME$FILE")
+        FILE_DIR="$(dirname "$HOME$FILE")"
 
         if [ ! -d "$FILE_DIR" ]; then
             mkdir -p "$FILE_DIR"
@@ -87,7 +144,7 @@ export_unlink () ## Unlink symbolic links.
     print_cyan "  Target user home directory\n\n"
     printf "    $HOME\n\n"
     print_cyan "  Removing symbolic link(s)\n\n"
-    FILES=$(find $__SCRIPT_DIR/home -type f | sed 's/^.*home//')
+    FILES=$(find "$__SCRIPT_DIR/home" -type f | sed 's/^.*home//')
     for FILE in $FILES; do
         echo "    $FILE"
     done
@@ -139,13 +196,7 @@ export_upgrade () ## Upgrade dotLINKS.
 {
     print_purple "Upgrade dotLINKS.\n\n"
 
-    print_yellow "  Checking git installed status..."
-    if ! type git > /dev/null 2>&1; then
-        print_red "FAILED\n\n"
-        print_red "Upgrade process depends for git,\nPlease install and retry.\n\nAborted.\n"
-        exit 1
-    fi
-    print_cyan "OK\n"
+    __check_git
 
     print_yellow "  Checking git repository..."
     if [ ! -d "$__SCRIPT_DIR/.git" ]; then
@@ -155,22 +206,7 @@ export_upgrade () ## Upgrade dotLINKS.
     fi
     print_cyan "OK\n"
 
-    print_yellow "  Checking remote upstream repository..."
-    REMOTE_UPSTREAM_URI=$(cd "$__SCRIPT_DIR"; git remote get-url upstream 2>/dev/null &&:)
-    if [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_SSH" ] && [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_HTTP" ]; then
-        print_yellow "INVALID\n"
-        print_yellow "    Setting remote upstream repository..."
-        $(cd "$__SCRIPT_DIR"; git remote add upstream "$__UPSTREAM_URI_SSH")
-        REMOTE_UPSTREAM_URI=$(cd "$__SCRIPT_DIR"; git remote get-url upstream 2>/dev/null &&:)
-        if [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_SSH" ] && [ ! "$REMOTE_UPSTREAM_URI" = "$__UPSTREAM_URI_HTTP" ]; then
-            print_red "FAILED\n\nCannot add remote upstream repository.\nPlease check remote upstream manually.\n\nAborted.\n"
-            exit 1
-        else
-            print_cyan "OK\n"
-        fi
-    else
-        print_cyan "OK\n"
-    fi
+    __check_git_upstream
 
     print_yellow "  Fetching remote upstream repository..."
     if ! $(cd "$__SCRIPT_DIR"; git fetch upstream 2>/dev/null); then
