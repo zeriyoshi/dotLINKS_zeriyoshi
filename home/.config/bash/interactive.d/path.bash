@@ -10,9 +10,4 @@ if [ -d /usr/local/sbin ]; then
     PATH="/usr/local/sbin:$PATH"
 fi
 
-# User
-if [ -d "$HOME/bin" ]; then
-    PATH="$HOME/bin:$PATH"
-fi
-
 export PATH
