@@ -1,0 +1,13 @@
+[user]
+	name = zeriyoshi
+	email = zeriyoshi@gmail.com
+[core]
+	excludesfile = ~/.gitignore_global
+[commit]
+	template = ~/.git_commit_message_template
+[alias]
+	tree = log --graph --pretty='format:%C(yellow)%h%Creset %s %Cgreen(%an)%Creset %Cred%d%Creset'
+[merge]
+	ff = false
+[pull]
+	ff = only
