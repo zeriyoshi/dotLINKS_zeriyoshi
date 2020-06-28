@@ -3,10 +3,6 @@ GIT_PS1_SHOWDIRTYSTATE=true
 
 OS_NAME=''
 
-if type dmidecode > /dev/null 2>&1 && [ "$(sudo dmidecode -s system-product-name)" = 'VirtualBox' ]; then
-    OS_NAME="\[\e[37;44;1m\]VB\[\e[m\]"
-fi
-
 if [ $(uname) = 'Darwin' ]; then
     OS_NAME="${OS_NAME}\[\e[37;1m\]macOS\[\e[m\]"
 elif type lsb_release > /dev/null 2>&1; then
